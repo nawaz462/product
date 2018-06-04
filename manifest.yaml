@@ -1,0 +1,7 @@
+---
+applications:
+- name: Products-Service
+  path: target/product-0.0.2-SNAPSHOT.jar
+  domain: cfapps.io
+  memory: 128m
+  instances: 1
