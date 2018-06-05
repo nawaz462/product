@@ -9,6 +9,6 @@ spring:
       port: 45210
       database: nawaz
       username: nawaz
-      password: Nawaz@123
+      password: nawaz123
 
 #mongodb://<dbuser>:<dbpassword>@ds245210.mlab.com:45210/nawaz
