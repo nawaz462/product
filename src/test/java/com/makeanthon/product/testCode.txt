@@ -1,0 +1,267 @@
+test Data:
+
+package com.makeanthon.cart.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.makeanthon.cart.Entity.Cart;
+import com.makeanthon.cart.Service.CartService;
+
+@RestController
+public class CartServiceController {
+	
+	@Autowired
+	CartService cartService;
+	
+	@GetMapping(value="/cart/{userId}")
+	public Cart getCartProducts(@PathVariable("userId") String userId){
+
+		return cartService.getUserCartProducts(userId);
+	}
+	
+	@PostMapping(value="/cart")
+	public String updateItemToCart( @RequestBody Cart selctedProduct){
+
+		cartService.addTocart(selctedProduct);
+		return "Added item to cart successfully";
+	}
+	
+	@DeleteMapping(value="/cart/{userId}/{productId}")
+	public String deleteItemFromCart(@PathVariable("userId") String userId, @PathVariable("productId") String productId){
+
+		cartService.deleteFromCart(userId, productId);
+		return "Deleted item to cart successfully";
+	}
+
+}
+
+
+-----
+
+package com.makeanthon.cart.Service;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import com.makeanthon.cart.Entity.Cart;
+import com.makeanthon.cart.dao.CartServiceDAO;
+
+@Component
+public class CartService {
+	
+	@Autowired
+	CartServiceDAO cartServiceDao;
+	
+	public Cart getUserCartProducts(String userId){
+		
+		return cartServiceDao.getUserCartProducts(userId);
+	}
+
+	public void addTocart(Cart selctedProduct) {
+
+		Cart userSelectedProducts = cartServiceDao.getUserCartProducts(selctedProduct.getUserId());
+		if(userSelectedProducts != null) {
+			userSelectedProducts.getUserSelectedProducts().addAll(selctedProduct.getUserSelectedProducts());
+			cartServiceDao.updateUserCart(userSelectedProducts);
+		}
+		else
+			cartServiceDao.addCartProduct(selctedProduct);
+	
+	}
+	
+	public void deleteFromCart(String userId, String productId) {
+
+		Cart userSelectedProducts = cartServiceDao.getUserCartProducts(userId);
+		userSelectedProducts.getUserSelectedProducts().removeIf(s-> s.getProductId().equals(productId));
+		cartServiceDao.updateUserCart(userSelectedProducts);
+	}
+}
+
+-----
+
+package com.makeanthon.cart.dao;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.stereotype.Component;
+
+import com.makeanthon.cart.Entity.Cart;
+import com.mongodb.client.result.UpdateResult;
+
+@Component
+public class CartServiceDAO {
+
+	
+	@Autowired
+	MongoTemplate mongoTemplate;
+	
+	public Cart getUserCartProducts(String userId){
+		
+		Criteria searchByNameCriteria = Criteria.where("userId").is(userId);
+		return mongoTemplate.findOne(Query.query(searchByNameCriteria), Cart.class);
+	}
+	
+	public void addCartProduct(Cart cartWithProduct){
+		
+		mongoTemplate.save(cartWithProduct);
+	}
+
+	public UpdateResult updateUserCart(Cart userCart) {
+
+		Criteria add = Criteria.where("userId").is(userCart.getUserId());
+		Update updateCart = new Update() ;
+		updateCart.set("userSelectedProducts", userCart.getUserSelectedProducts());
+		updateCart.set("totalCartAmount", userCart.getTotalCartAmount());
+		
+		return mongoTemplate.upsert(new Query(add), updateCart, Cart.class);
+	}
+}
+
+-----
+
+package com.makeanthon.cart.Entity;
+
+import java.util.List;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection="cart")
+public class Cart {
+
+	private String userId;
+	private List<UserSelectedProdcuts> userSelectedProducts;
+	private Long totalCartAmount;
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public List<UserSelectedProdcuts> getUserSelectedProducts() {
+		return userSelectedProducts;
+	}
+
+	public void setUserSelectedProducts(List<UserSelectedProdcuts> userSelectedProducts) {
+		this.userSelectedProducts = userSelectedProducts;
+	}
+
+	public Long getTotalCartAmount() {
+		return totalCartAmount;
+	}
+
+	public void setTotalCartAmount(Long totalCartAmount) {
+		this.totalCartAmount = totalCartAmount;
+	}
+	
+	public Cart() {
+		
+	}
+	
+}
+
+-----
+package com.makeanthon.cart.Entity;
+
+
+public class UserSelectedProdcuts {
+
+	private String productId;
+	private String productName;
+	private int productQuantity;
+	private int productCost;
+	
+	public String getProductId() {
+		return productId;
+	}
+	public void setProductId(String productId) {
+		this.productId = productId;
+	}
+	public String getProductName() {
+		return productName;
+	}
+	public void setProductName(String productName) {
+		this.productName = productName;
+	}
+	public int getProductQuantity() {
+		return productQuantity;
+	}
+	public void setProductQuantity(int productQuantity) {
+		this.productQuantity = productQuantity;
+	}
+	public int getProductCost() {
+		return productCost;
+	}
+	public void setProductCost(int productCost) {
+		this.productCost = productCost;
+	}
+	public UserSelectedProdcuts() {
+	}
+}
+
+
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.makeanthon</groupId>
+	<artifactId>cart</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>cart</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.2.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+
+</project>
