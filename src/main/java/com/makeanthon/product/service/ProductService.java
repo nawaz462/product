@@ -10,7 +10,7 @@ import com.mongodb.DBObject;
 @Service
 public interface ProductService {
 
-	List<DBObject> getAllProducts();
+	List<DBObject> getAllProducts(int page);
 
 	List<DBObject> getProductDetails(String productId);
 

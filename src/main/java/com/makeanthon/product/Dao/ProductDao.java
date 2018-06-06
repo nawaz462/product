@@ -14,5 +14,7 @@ public interface ProductDao {
 
 	 List<DBObject> getFilteredProducts(FilterParams filterParams);
 
+	List<DBObject> getAllProdutsWithLimit(int page);
+
 }
 	

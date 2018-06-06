@@ -3,9 +3,7 @@ package com.makeanthon.product.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
-
 import com.makeanthon.product.Dao.ProductDao;
 import com.makeanthon.product.Entity.FilterParams;
 import com.mongodb.DBObject;
@@ -15,14 +13,11 @@ public class ProductServiceImpl implements ProductService{
 	
 	@Autowired
 	ProductDao productRepo;
-	
-	@Autowired
-	MongoTemplate mongoTemplate;
 
 	@Override
-	public List<DBObject> getAllProducts() {
+	public List<DBObject> getAllProducts(int page) {
 		
-		return mongoTemplate.findAll(DBObject.class, "product");
+		return productRepo.getAllProdutsWithLimit(page);
 	}
 
 	@Override

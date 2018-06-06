@@ -18,13 +18,13 @@ public class ProductController {
 	@Autowired
 	ProductService productService;
 
-	@RequestMapping(value="/products",method=RequestMethod.GET)
-	public List<DBObject> getAllProducts(){
+	@RequestMapping(value="/products/{page}",method=RequestMethod.GET)
+	public List<DBObject> getAllProducts(@PathVariable("page") int page){
 		
-		return productService.getAllProducts();
+		return productService.getAllProducts(page);
 	}
 	
-	@RequestMapping(value="/products/{productId}",method=RequestMethod.GET)
+	@RequestMapping(value="/product/{productId}",method=RequestMethod.GET)
 	public List<DBObject> getProductInfo(@PathVariable("productId") String productId){
 		
 		return productService.getProductDetails(productId);
@@ -32,7 +32,7 @@ public class ProductController {
 	
 	@RequestMapping(value="/products",method=RequestMethod.POST)
 	public List<DBObject> getFilteredProducts(@RequestBody FilterParams filterParams){
-		System.out.println("In Filter...");
+
 		return productService.getFilteredProducts(filterParams);
 	}
 }

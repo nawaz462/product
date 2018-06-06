@@ -12,7 +12,7 @@ public class FilterParams {
 	 Set<String> category = new HashSet<>();
 	 Set<String> size = new HashSet<>();
 	 Set<String> color = new HashSet<>();
-	
+	private String name;
 	
 	public Set<String> getBrand() {
 		return brand;
@@ -38,7 +38,13 @@ public class FilterParams {
 	public void setColor(Set<String> color) {
 		this.color = color;
 	}
-
+	
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
 	public FilterParams() {
 	}
 }

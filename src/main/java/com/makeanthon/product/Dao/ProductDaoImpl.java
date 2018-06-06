@@ -3,6 +3,8 @@ package com.makeanthon.product.Dao;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -40,10 +42,19 @@ public class ProductDaoImpl implements ProductDao{
 			filterSearchCriteria = filterSearchCriteria.where("category").in(filterParams.getCategory());
 		if(filterParams.getColor().size() > 0)
 			filterSearchCriteria = filterSearchCriteria.where("color").in(filterParams.getColor());
-		/*if(StringUtils.isEmpty(filterParams.getName()) )
-			filterSearchCriteria = filterSearchCriteria.where("name").in(filterParams.getName());*/
+		if(StringUtils.isEmpty(filterParams.getName()) )
+			filterSearchCriteria = filterSearchCriteria.where("name").in(filterParams.getName());
 		
 		return mongoTemplate.find(new Query(filterSearchCriteria), DBObject.class, "product");
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public List<DBObject> getAllProdutsWithLimit(int page) {
+		
+		Query limitQuery = new Query();
+		limitQuery.with(new PageRequest(page, 5, new Sort(Sort.Direction.ASC, "id")));
+		return mongoTemplate.find(limitQuery, DBObject.class, "product");
 	}
 
 	
